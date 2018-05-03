@@ -1,0 +1,81 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time 
+
+driver = webdriver.Firefox()
+driver.get("https://localhost:8834/#/")
+try:
+    element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//*[@class='required login-username']"))
+        )
+    element.send_keys("admin")
+    element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//*[@class='required login-password']"))
+        )
+    element.send_keys("admin")
+    element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//button[text()="Sign In"]'))
+        )
+    element.click()
+    driver.get("https://localhost:8834/#/scans/folders/my-scans")
+    element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "/    r[@data-id='9']    d[@class='scan-action-1']"))
+        
+        )
+    element.click()
+    element = WebDriverWait(driver, 10).until(
+
+        EC.presence_of_element_located((By.XPATH, "/    r[@data-id='5']    d[@class='scan-action-1']"))
+        
+        )
+
+    element.click()
+    time.sleep(10) 
+    mock_status = {}
+    mock_status['5'] = 'running'
+    mock_status['9'] = 'completed'
+
+    scan_ids = [5, 9]
+    import time
+    while True: 
+        if not scan_ids: # or exceeded timeout
+            break
+        i = scan_ids.pop()
+        print("checking scan id %d" % i)
+
+        # find element status
+        # from selenium.webdriver.common.by import By
+
+        element = driver.find_element(By.XPATH, "/    r[@data-id='" +str(i) +"']")
+        print(element.get_attribute('outerHTML'))        
+        print("Naren"+element.get_attribute('data-status'))
+# element.get_attribute('status')
+
+        status = element.get_attribute('data-status')
+        print(status)
+
+               
+        if status == 'completed':
+            element = driver.find_element(By.XPATH, "/    d[@data-order='East ADBOR']")
+            element.click()
+            time.sleep(100)
+            element = driver.find_element(By.ID, "export")
+            element.click()
+            
+            element = driver.find_element(By.XPATH, "//li[@data-value='html']") 
+            element.click()
+            time.sleep(10)
+            element = driver.find_element(By.XPATH, "//*[@id='export-save']") 
+            element.click()
+            time.sleep(10)
+        # <li data-value="html">HTML</li>
+# //*[@id="export-save"]
+        if status == 'running':
+            scan_ids.append(i)
+
+        time.sleep(2)
+
+finally:
+    driver.quit()
